@@ -1,15 +1,49 @@
-<script>
+<script lang="ts">
     import { browser } from "$app/environment";
     import { ethers } from "ethers";
 
     let connected = false;
     let address = "";
-    let balance = "";
+    let balance = ethers.BigNumberish | undefined;
     let network = "";
 
     let tokenName = "";
     let symbol = "";
     let deployedAddr = "";
+
+    const connectWallet = async () => {
+        try {
+            const { ethereum } = window;
+            if (!ethereum) {
+                console.log("Please install metamask");
+            }
+            const accounts = await ethereum.request({
+                method: "eth_requestAccounts",
+            });
+            address = accounts[0];
+            connected = true;
+        } catch (Err) {
+            console.log("Error :",Err)
+        }
+    }
+
+    const getBalanceData = async () => {
+        try {
+            const { ethereum } = window;
+
+            if (ethereum) {
+                const providers = new ethers.providers.Web3Provider(
+                    ethereum,
+                    "any"
+                );
+                const signers = providers.getSigner();
+                balance = await providers.getBalance(address);
+                balance = ethers.utils.formatEther(balance);
+            }
+        } catch (err) {
+            console.log(err);
+        }
+    }
 
 </script>
 <div class="box">
@@ -21,8 +55,22 @@
             Please follow the below mentioned steps and mint your 1<sup>st</sup> token
             on the blockchain
         </p>
-        <input type="button" value="Connect Wallet" />
+        <button type="button" on:click={() => {
+            connectWallet();
+            getBalanceData();
+        }}>Connect Wallet</button>
     </div>
+</div>
+<div class="box">
+    {#if connected}
+        <div>
+            <p>Connected to Address: {address}</p>
+            <p>The account balance is: {balance}</p>
+        </div>
+    {/if}
+</div>
+<div class="box">
+    
 </div>
 
 <style>
